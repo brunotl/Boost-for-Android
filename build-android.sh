@@ -188,6 +188,52 @@ do_with_python () {
   done
 }
 
+#----------------------------------------------------------------------------------
+arch_for_abi_name() {
+    local abi_name=$1
+    case "$abi_name" in
+        arm64-v8a)      echo "arm"
+        ;;
+        armeabi-v7a)    echo "arm"
+        ;;
+        x86)            echo "x86"
+        ;;
+        x86_64)         echo "x86"
+        ;;
+    esac
+}
+
+#----------------------------------------------------------------------------------
+address_model_for_abi_name() {
+    local abi_name=$1
+    case "$abi_name" in
+        arm64-v8a)      echo "64"
+        ;;
+        armeabi-v7a)    echo "32"
+        ;;
+        x86)            echo "32"
+        ;;
+        x86_64)         echo "64"
+        ;;
+
+    esac
+}
+
+#----------------------------------------------------------------------------------
+abi_for_abi_name() {
+    local abi_name=$1
+    case "$abi_name" in
+        arm64-v8a)      echo "aapcs"
+        ;;
+        armeabi-v7a)    echo "aapcs"
+        ;;
+        x86)            echo "sysv"
+        ;;
+        x86_64)         echo "sysv"
+        ;;
+    esac
+}
+
 PROGRAM_PARAMETERS="<ndk-root>"
 PROGRAM_DESCRIPTION=\
 "       Boost For Android\n"\
@@ -602,11 +648,19 @@ echo "Building boost for android for $ARCH"
       unset WITHOUT_LIBRARIES
   fi
 
+  abi="$(abi_for_abi_name $ARCH)"
+  address_model="$(address_model_for_abi_name $ARCH)"
+  arch_for_abi="$(arch_for_abi_name $ARCH)"
+
   { 
     ./b2 -q                          \
         -d+2                         \
         --ignore-site-config         \
         -j$NCPU                      \
+        binary-format=elf            \
+        abi=$abi                     \
+        address-model=$address_model \
+        architecture=$arch_for_abi   \
         target-os=${TARGET_OS}       \
         toolset=${TOOLSET_ARCH}      \
         $cflags                      \
